@@ -18,14 +18,14 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    socket.on('join_room', ({ roomId, playerName }) => {
+    socket.on('join_room', ({ roomId, playerName, customGrid }) => {
         socket.join(roomId);
 
         if (!gameManager.rooms.has(roomId)) {
             gameManager.createRoom(roomId);
         }
 
-        const result = gameManager.joinRoom(roomId, { id: socket.id, name: playerName });
+        const result = gameManager.joinRoom(roomId, { id: socket.id, name: playerName }, customGrid);
 
         if (result.error) {
             socket.emit('error_msg', result.error);
@@ -53,9 +53,20 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('disconnecting', () => {
+        const rooms = Array.from(socket.rooms);
+        rooms.forEach(roomId => {
+            if (roomId !== socket.id) {
+                const updatedRoom = gameManager.leaveRoom(roomId, socket.id);
+                if (updatedRoom) {
+                    io.to(roomId).emit('room_update', updatedRoom);
+                }
+            }
+        });
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-        // Optional: Handle room cleanup or player leaving logic
     });
 });
 

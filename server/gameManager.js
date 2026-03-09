@@ -15,13 +15,29 @@ class GameManager {
         return true;
     }
 
-    joinRoom(roomId, player) {
+    joinRoom(roomId, player, customGrid = null) {
         const room = this.rooms.get(roomId);
         if (!room) return { error: 'Room not found' };
-        if (room.players.length >= 2) return { error: 'Room full' };
 
-        // Generate grid for player
-        const grid = this.generateGrid();
+        // Check if player already exists in the room
+        const existingPlayerIndex = room.players.findIndex(p => p.id === player.id);
+
+        // Use custom grid if provided, otherwise generate random
+        let grid;
+        if (customGrid) {
+            // Server-side validation
+            const flatGrid = customGrid.flat();
+            const uniqueNums = new Set(flatGrid);
+            const isValid = flatGrid.length === 25 &&
+                uniqueNums.size === 25 &&
+                flatGrid.every(n => n >= 1 && n <= 25);
+
+            if (!isValid) return { error: 'Invalid tactical grid configuration' };
+            grid = customGrid;
+        } else {
+            // If re-joining and already have a grid, keep it, otherwise generate new
+            grid = existingPlayerIndex !== -1 ? room.players[existingPlayerIndex].grid : this.generateGrid();
+        }
         const newPlayer = {
             ...player,
             grid,
@@ -29,7 +45,13 @@ class GameManager {
             bingoLetters: ''
         };
 
-        room.players.push(newPlayer);
+        if (existingPlayerIndex !== -1) {
+            room.players[existingPlayerIndex] = newPlayer;
+        } else if (room.players.length < 2) {
+            room.players.push(newPlayer);
+        } else {
+            return { error: 'Room full' };
+        }
 
         if (room.players.length === 2) {
             room.gameState = 'playing';
@@ -70,9 +92,11 @@ class GameManager {
         });
 
         // Check if any player won
-        const winner = room.players.find(p => p.bingoCount >= 5);
-        if (winner) {
+        const winners = room.players.filter(p => p.bingoCount >= 5);
+        if (winners.length > 0) {
             room.gameState = 'gameOver';
+            // In case of a draw (both hit 5 at the same time), the one whose turn it was wins
+            const winner = winners.find(p => p.id === playerId) || winners[0];
             room.winner = winner.id;
         } else {
             // Alternate turn
