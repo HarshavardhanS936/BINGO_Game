@@ -87,7 +87,7 @@ const Dashboard = () => {
                         onClick={() => handleModeSelect('auto')}
                         className="w-full py-4 rounded-xl bg-[var(--text-main)] text-[var(--bg-deep)] font-black uppercase tracking-wider text-xs hover:opacity-80 transition-all shadow-lg group-hover:shadow-cyan-500/40"
                     >
-                        Deploy Now
+                        Auto Play
                     </button>
                     <div className="absolute top-0 right-0 p-6 text-[var(--text-muted)] select-none pointer-events-none">
                         <span className="text-6xl font-black tracking-tighter opacity-10 uppercase italic">GUEST</span>
@@ -123,7 +123,7 @@ const Dashboard = () => {
                             : 'bg-[var(--glass-hex)] text-[var(--text-muted)]'
                             }`}
                     >
-                        Initialize Setup
+                        Manual Play
                     </button>
 
                     <div className="absolute top-0 right-0 p-6 text-[var(--text-muted)] select-none pointer-events-none">

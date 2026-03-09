@@ -31,7 +31,7 @@ const Leaderboard = () => {
     }, []);
 
     return (
-        <div className="flex-1 w-full max-w-4xl mx-auto p-6 md:p-12 space-y-12 min-h-[calc(100vh-80px)]">
+        <div className="flex-1 w-full max-w-4xl mx-auto p-6 md:p-12 space-y-12 overflow-y-auto">
             <header className="flex items-center justify-between">
                 <div className="space-y-2">
                     <button
