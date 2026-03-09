@@ -17,6 +17,8 @@ import {
     User,
     ChevronRight,
     Edit2,
+    Menu,
+    X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -27,6 +29,7 @@ const Navbar = () => {
     const location = useLocation();
     const [showInstructions, setShowInstructions] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
 
     const navLinks = [
         { name: "Home", path: "/dashboard", icon: Home },
@@ -42,8 +45,8 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="w-full h-12 bg-[var(--glass-bg)] backdrop-blur-2xl border-b border-[var(--glass-border)] sticky top-0 z-[100] px-4 md:px-8">
-            <div className="max-w-7xl mx-auto h-full flex items-center justify-between gap-2">
+        <nav className="w-full bg-[var(--glass-bg)] backdrop-blur-2xl border-b border-[var(--glass-border)] sticky top-0 z-[100] px-4 md:px-8">
+            <div className="max-w-7xl mx-auto h-12 flex items-center justify-between gap-2">
                 {/* Logo Section */}
                 <div className="flex items-center gap-6">
                     <Link to="/dashboard" className="flex items-center gap-2 group">
@@ -57,7 +60,7 @@ const Navbar = () => {
                         </div>
                     </Link>
 
-                    {/* Navigation Links */}
+                    {/* Desktop Navigation Links */}
                     <div className="hidden lg:flex items-center gap-1">
                         {navLinks.map((link) => {
                             const Icon = link.icon;
@@ -191,7 +194,7 @@ const Navbar = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="hidden lg:flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/login', { state: { mode: 'login' } })}
                                 className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white text-black font-black uppercase tracking-wider text-[10px] hover:bg-cyan-400 transition-all shadow-xl"
@@ -201,15 +204,88 @@ const Navbar = () => {
                             </button>
                             <button
                                 onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-                                className="hidden sm:flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500 text-black font-black uppercase tracking-wider text-[10px] hover:bg-white transition-all shadow-cyan-500/20 shadow-lg"
+                                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500 text-black font-black uppercase tracking-wider text-[10px] hover:bg-white transition-all shadow-cyan-500/20 shadow-lg"
                             >
                                 <UserPlus className="w-4 h-4" />
                                 Signup
                             </button>
                         </div>
                     )}
+
+                    {/* Hamburger Button — mobile only */}
+                    <button
+                        onClick={() => setShowMenu(prev => !prev)}
+                        className="lg:hidden w-9 h-9 rounded-xl bg-[var(--glass-hex)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-cyan-400 hover:border-cyan-500/30 transition-all"
+                    >
+                        {showMenu ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                    </button>
                 </div>
             </div>
+
+            {/* Mobile Drawer */}
+            <AnimatePresence>
+                {showMenu && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="lg:hidden overflow-hidden border-t border-[var(--glass-border)]"
+                    >
+                        <div className="py-3 px-2 flex flex-col gap-1">
+                            {navLinks.map((link) => {
+                                const Icon = link.icon;
+                                const isActive = location.pathname === link.path;
+                                return (
+                                    <Link
+                                        key={link.name}
+                                        to={link.path}
+                                        onClick={(e) => {
+                                            if (link.disabled) handleDisabledClick(e, link.name);
+                                            setShowMenu(false);
+                                        }}
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${isActive
+                                            ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                                            : 'text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hex)] border border-transparent'
+                                            } ${link.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                        {link.name}
+                                    </Link>
+                                );
+                            })}
+
+                            <button
+                                onClick={() => { setShowInstructions(true); setShowMenu(false); }}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hex)] border border-transparent transition-all"
+                            >
+                                <HelpCircle className="w-4 h-4" />
+                                Help
+                            </button>
+
+                            {/* Mobile auth buttons if not logged in */}
+                            {!user && (
+                                <div className="flex gap-2 mt-2 px-2">
+                                    <button
+                                        onClick={() => { navigate('/login', { state: { mode: 'login' } }); setShowMenu(false); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-black font-black uppercase tracking-wider text-[10px] hover:bg-cyan-400 transition-all"
+                                    >
+                                        <LogIn className="w-4 h-4" />
+                                        Login
+                                    </button>
+                                    <button
+                                        onClick={() => { navigate('/login', { state: { mode: 'signup' } }); setShowMenu(false); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-cyan-500 text-black font-black uppercase tracking-wider text-[10px] hover:bg-white transition-all"
+                                    >
+                                        <UserPlus className="w-4 h-4" />
+                                        Signup
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Instructions Modal */}
             <Instructions isOpen={showInstructions} onClose={() => setShowInstructions(false)} />
